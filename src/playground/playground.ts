@@ -1,5 +1,6 @@
 // Bonjour ! Si vous ne connaissez pas la syntaxe "yield* xxx", imaginez que se
 // sont des "await". Dans notre cas pratique cela fonctionne de la même manière.
+// test 4 working
 
 import {
   /**
