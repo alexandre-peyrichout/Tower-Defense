@@ -83,6 +83,7 @@ export default function* playground() {
       
       if (actorStatus==="alive" && !rabbitsIdList.includes(actorId)){
         currentTarget=actorId
+        console.log("KILLLLL")
       }
     }
     // Après avoir reçu les mises à jour, on doit effectuer une (ET UNE SEULE) action:
