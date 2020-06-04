@@ -38,15 +38,23 @@ import {
 export default function* playground() {
   // Lecture des données de base du jeu :
   const baseData = yield* readLine(); // "<base latitude> <base longitude> <base attack range> <base energy>"
-  console.log(baseData);
+  const baseLatitude = baseData.split(" ")[0]
+  const baseLongitude = baseData.split(" ")[1]
+  const baseAttackRange = baseData.split(" ")[2]
+  const baseEnergy = baseData.split(" ")[3]
+
+  console.log("baseData\n","latitude: " + baseLatitude + "\n","Longitude: " + baseLongitude + "\n","Attack Range: " + baseAttackRange + "\n","Energy: " + baseEnergy + "\n",);
 
   const nbActors = yield* readLine(); // "<nb actors>"
-  console.log(nbActors);
+  console.log("nbActors", nbActors);
 
   // @ts-ignore TODO possible de corriger l'erreur sur la ligne suivante ?
   for (let i = 0; i < nbActors; ++i) {
     const actor = yield* readLine(); // "<actor id> <actor type (robot|rabbit)> <actor speed (km/h)>"
-    console.log("init", actor);
+    const actorId = actor.split(" ")[0]
+    const actorType = actor.split(" ")[1]
+    const actorSpeed = actor.split(" ")[2]
+    console.log("actorSplit init", actorId, actorType, actorSpeed);
   }
 
   // Code exécuté à chaque tour
@@ -54,15 +62,23 @@ export default function* playground() {
     // A chaque tour, on récupère les mises à jour de chaque entités (statut
     // vivant ou mort, nouvelle position, ...)
     // @ts-ignore TODO possible de corriger l'erreur sur la ligne suivante ?
-    for (let i = 0; i < nbActors; ++i) {
+    let currentTarget: string = ""
+    
+    for (let i = 0; i < Number(nbActors); ++i) {
       const actor = yield* readLine(); // "<actor id> <actor status (alive|dead)> <actor latitude> <actor longitude>"
-      console.log("update", actor);
-    }
+      const actorId = actor.split(" ")[0]
+      const actorStatus = actor.split(" ")[1]
+      const actorLatitude = actor.split(" ")[2]
+      const actorLongitude = actor.split(" ")[3]
 
+      console.log("actorSplit update", actorId, actorStatus, actorLatitude, actorLongitude);
+
+      currentTarget = actorId
+    }
     // Après avoir reçu les mises à jour, on doit effectuer une (ET UNE SEULE) action:
     // - `yield* wait()` : On ne fait rien (on passe notre tour)
     // - `yield* shotTarget('nemo');` : On décide de tirer sur l'entité qui a l'id "nemo"
-    yield* wait();
-    //yield* shotTarget('the actor id');
+    // yield* wait();
+    yield* shotTarget(currentTarget);
   }
 }
