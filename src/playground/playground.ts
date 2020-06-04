@@ -62,7 +62,7 @@ export default function* playground() {
     // A chaque tour, on récupère les mises à jour de chaque entités (statut
     // vivant ou mort, nouvelle position, ...)
     // @ts-ignore TODO possible de corriger l'erreur sur la ligne suivante ?
-    let currentTarget: string = ""
+    let currentTarget = "" 
     
     for (let i = 0; i < Number(nbActors); ++i) {
       const actor = yield* readLine(); // "<actor id> <actor status (alive|dead)> <actor latitude> <actor longitude>"
@@ -73,12 +73,14 @@ export default function* playground() {
 
       console.log("actorSplit update", actorId, actorStatus, actorLatitude, actorLongitude);
 
-      currentTarget = actorId
+      if (actorStatus==="alive"){
+        currentTarget=actorId
+      }
     }
     // Après avoir reçu les mises à jour, on doit effectuer une (ET UNE SEULE) action:
     // - `yield* wait()` : On ne fait rien (on passe notre tour)
     // - `yield* shotTarget('nemo');` : On décide de tirer sur l'entité qui a l'id "nemo"
     // yield* wait();
-    yield* shotTarget(currentTarget);
+        yield* shotTarget(currentTarget);
   }
 }
