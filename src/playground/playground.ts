@@ -44,8 +44,10 @@ export default function* playground() {
   const baseAttackRange: number = Number(baseData.split(" ")[2])
   const baseEnergy: number = Number(baseData.split(" ")[3])
 
+  const baseAttackRangeDiff = baseAttackRange / 100000
+  console.log(baseAttackRangeDiff)
 
-  console.log("baseData\n","latitude: " + baseLatitude + "\n","Longitude: " + baseLongitude + "\n","Attack Range: " + baseAttackRange + "\n","Energy: " + baseEnergy + "\n",);
+  console.log("baseData\n", "latitude: " + baseLatitude + "\n", "Longitude: " + baseLongitude + "\n", "Attack Range: " + baseAttackRange + "\n", "Energy: " + baseEnergy + "\n");
 
   const nbActors = yield* readLine(); // "<nb actors>"
   console.log("nbActors", nbActors);
@@ -60,7 +62,7 @@ export default function* playground() {
     const actorSpeed = actor.split(" ")[2]
     console.log("actorSplit init", actorId, actorType, actorSpeed);
 
-    if (actorType==="rabbit") {
+    if (actorType === "rabbit") {
       rabbitsIdList.push(actorId)
     }
   }
@@ -70,31 +72,41 @@ export default function* playground() {
     // A chaque tour, on récupère les mises à jour de chaque entités (statut
     // vivant ou mort, nouvelle position, ...)
     // @ts-ignore TODO possible de corriger l'erreur sur la ligne suivante ?
-    let currentTarget = "" 
-    
+    let currentTarget = ""
+    let isInRange = false
+
     for (let i = 0; i < Number(nbActors); ++i) {
       const actor = yield* readLine(); // "<actor id> <actor status (alive|dead)> <actor latitude> <actor longitude>"
       const actorId = actor.split(" ")[0]
       const actorStatus = actor.split(" ")[1]
-      const actorLatitude:number = Number(actor.split(" ")[2])
-      const actorLongitude:number = Number(actor.split(" ")[3])
+      const actorLatitude: number = Number(actor.split(" ")[2])
+      const actorLongitude: number = Number(actor.split(" ")[3])
 
       console.log("actorSplit update", actorId, actorStatus, actorLatitude, actorLongitude);
-      
-      if (actorStatus==="alive" && !rabbitsIdList.includes(actorId)){
-        currentTarget=actorId
-        console.log("KILLLLL")
+      if (
+        actorLatitude >= baseLatitude - baseAttackRangeDiff &&
+        actorLatitude <= baseLatitude + baseAttackRangeDiff &&
+        actorLongitude >= baseLongitude - baseAttackRangeDiff &&
+        actorLongitude <= baseLongitude + baseAttackRangeDiff
+      ) {
+        isInRange = true
+      }
+
+
+      if (actorStatus === "alive" && !rabbitsIdList.includes(actorId) && isInRange) {
+        console.log("kill" + actorId)
+        currentTarget = actorId
       }
     }
     // Après avoir reçu les mises à jour, on doit effectuer une (ET UNE SEULE) action:
     // - `yield* wait()` : On ne fait rien (on passe notre tour)
     // - `yield* shotTarget('nemo');` : On décide de tirer sur l'entité qui a l'id "nemo"
     // yield* wait();
+    console.log("current::::" + currentTarget)
     if (currentTarget === "") {
       yield* wait()
     } else {
       yield* shotTarget(currentTarget)
-      currentTarget = ""
     }
   }
 }
