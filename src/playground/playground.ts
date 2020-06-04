@@ -44,8 +44,8 @@ export default function* playground() {
   const baseAttackRange: number = Number(baseData.split(" ")[2])
   const baseEnergy: number = Number(baseData.split(" ")[3])
 
-  const baseAttackRangeDiff = baseAttackRange / 100000
-  console.log(baseAttackRangeDiff)
+  const baseAttackRangeConverted = baseAttackRange / 100000
+  console.log(baseAttackRangeConverted)
 
   console.log("baseData\n", "latitude: " + baseLatitude + "\n", "Longitude: " + baseLongitude + "\n", "Attack Range: " + baseAttackRange + "\n", "Energy: " + baseEnergy + "\n");
 
@@ -84,10 +84,10 @@ export default function* playground() {
 
       console.log("actorSplit update", actorId, actorStatus, actorLatitude, actorLongitude);
       if (
-        actorLatitude >= baseLatitude - baseAttackRangeDiff &&
-        actorLatitude <= baseLatitude + baseAttackRangeDiff &&
-        actorLongitude >= baseLongitude - baseAttackRangeDiff &&
-        actorLongitude <= baseLongitude + baseAttackRangeDiff
+        actorLatitude >= baseLatitude - baseAttackRangeConverted &&
+        actorLatitude <= baseLatitude + baseAttackRangeConverted &&
+        actorLongitude >= baseLongitude - baseAttackRangeConverted &&
+        actorLongitude <= baseLongitude + baseAttackRangeConverted
       ) {
         isInRange = true
       }
