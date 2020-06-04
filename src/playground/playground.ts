@@ -48,13 +48,19 @@ export default function* playground() {
   const nbActors = yield* readLine(); // "<nb actors>"
   console.log("nbActors", nbActors);
 
+  let rabbitsIdList = []
+
   // @ts-ignore TODO possible de corriger l'erreur sur la ligne suivante ?
-  for (let i = 0; i < nbActors; ++i) {
+  for (let i = 0; i < Number(nbActors); ++i) {
     const actor = yield* readLine(); // "<actor id> <actor type (robot|rabbit)> <actor speed (km/h)>"
     const actorId = actor.split(" ")[0]
     const actorType = actor.split(" ")[1]
     const actorSpeed = actor.split(" ")[2]
     console.log("actorSplit init", actorId, actorType, actorSpeed);
+
+    if (actorType==="rabbit") {
+      rabbitsIdList.push(actorId)
+    }
   }
 
   // Code exécuté à chaque tour
@@ -73,7 +79,7 @@ export default function* playground() {
 
       console.log("actorSplit update", actorId, actorStatus, actorLatitude, actorLongitude);
 
-      if (actorStatus==="alive"){
+      if (actorStatus==="alive" && !rabbitsIdList.includes(actorId)){
         currentTarget=actorId
       }
     }
@@ -81,6 +87,10 @@ export default function* playground() {
     // - `yield* wait()` : On ne fait rien (on passe notre tour)
     // - `yield* shotTarget('nemo');` : On décide de tirer sur l'entité qui a l'id "nemo"
     // yield* wait();
-        yield* shotTarget(currentTarget);
+    if (currentTarget === "") {
+      yield* wait()
+    } else {
+      yield* shotTarget(currentTarget)
+    }
   }
 }
