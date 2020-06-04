@@ -74,6 +74,8 @@ export default function* playground() {
     // @ts-ignore TODO possible de corriger l'erreur sur la ligne suivante ?
     let currentTarget = ""
     let isInRange = false
+    let savedLatitudeDiff = 10000
+    let savedLongitudeDiff = 10000
 
     for (let i = 0; i < Number(nbActors); ++i) {
       const actor = yield* readLine(); // "<actor id> <actor status (alive|dead)> <actor latitude> <actor longitude>"
@@ -82,31 +84,40 @@ export default function* playground() {
       const actorLatitude: number = Number(actor.split(" ")[2])
       const actorLongitude: number = Number(actor.split(" ")[3])
 
+      const latitudeDiff = actorLatitude - baseLatitude
+      const longitudeDiff = actorLongitude - baseLongitude
+      console.log(latitudeDiff, longitudeDiff)
+
       console.log("actorSplit update", actorId, actorStatus, actorLatitude, actorLongitude);
       if (
-        actorLatitude >= baseLatitude - baseAttackRangeConverted &&
-        actorLatitude <= baseLatitude + baseAttackRangeConverted &&
-        actorLongitude >= baseLongitude - baseAttackRangeConverted &&
-        actorLongitude <= baseLongitude + baseAttackRangeConverted
+        actorLatitude > baseLatitude - baseAttackRangeConverted &&
+        actorLatitude < baseLatitude + baseAttackRangeConverted &&
+        actorLongitude > baseLongitude - baseAttackRangeConverted &&
+        actorLongitude < baseLongitude + baseAttackRangeConverted
       ) {
         isInRange = true
       }
 
 
       if (actorStatus === "alive" && !rabbitsIdList.includes(actorId) && isInRange) {
-        console.log("kill" + actorId)
-        currentTarget = actorId
+        if (latitudeDiff<savedLatitudeDiff && longitudeDiff<savedLongitudeDiff) {
+          savedLatitudeDiff = latitudeDiff
+          savedLongitudeDiff = longitudeDiff
+          currentTarget = actorId
+          console.log("good target::::" + actorId)
+        }
       }
     }
     // Après avoir reçu les mises à jour, on doit effectuer une (ET UNE SEULE) action:
     // - `yield* wait()` : On ne fait rien (on passe notre tour)
     // - `yield* shotTarget('nemo');` : On décide de tirer sur l'entité qui a l'id "nemo"
     // yield* wait();
-    console.log("current::::" + currentTarget)
     if (currentTarget === "") {
       yield* wait()
     } else {
       yield* shotTarget(currentTarget)
+      console.log("IS DEADDD NOW  -  " + currentTarget)
+      currentTarget=""
     }
   }
 }
