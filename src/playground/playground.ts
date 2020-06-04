@@ -39,10 +39,11 @@ import {
 export default function* playground() {
   // Lecture des données de base du jeu :
   const baseData = yield* readLine(); // "<base latitude> <base longitude> <base attack range> <base energy>"
-  const baseLatitude = baseData.split(" ")[0]
-  const baseLongitude = baseData.split(" ")[1]
-  const baseAttackRange = baseData.split(" ")[2]
-  const baseEnergy = baseData.split(" ")[3]
+  const baseLatitude: number = Number(baseData.split(" ")[0])
+  const baseLongitude: number = Number(baseData.split(" ")[1])
+  const baseAttackRange: number = Number(baseData.split(" ")[2])
+  const baseEnergy: number = Number(baseData.split(" ")[3])
+
 
   console.log("baseData\n","latitude: " + baseLatitude + "\n","Longitude: " + baseLongitude + "\n","Attack Range: " + baseAttackRange + "\n","Energy: " + baseEnergy + "\n",);
 
@@ -75,11 +76,11 @@ export default function* playground() {
       const actor = yield* readLine(); // "<actor id> <actor status (alive|dead)> <actor latitude> <actor longitude>"
       const actorId = actor.split(" ")[0]
       const actorStatus = actor.split(" ")[1]
-      const actorLatitude = actor.split(" ")[2]
-      const actorLongitude = actor.split(" ")[3]
+      const actorLatitude:number = Number(actor.split(" ")[2])
+      const actorLongitude:number = Number(actor.split(" ")[3])
 
       console.log("actorSplit update", actorId, actorStatus, actorLatitude, actorLongitude);
-
+      
       if (actorStatus==="alive" && !rabbitsIdList.includes(actorId)){
         currentTarget=actorId
       }
@@ -92,6 +93,7 @@ export default function* playground() {
       yield* wait()
     } else {
       yield* shotTarget(currentTarget)
+      currentTarget = ""
     }
   }
 }
