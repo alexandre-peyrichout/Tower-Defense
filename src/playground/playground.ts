@@ -33,6 +33,7 @@ import {
   shotTarget
 } from "./utils";
 
+
 /**
  * Fonction qui est lancé à chaque lancement de partie.
  */
@@ -45,10 +46,9 @@ export default function* playground() {
   const base = {
     y: +baseData.split(" ")[0],       // latitude (y)
     x: +baseData.split(" ")[1],       // longitude (x)
-    range: +baseData.split(" ")[2], 
+    range: +baseData.split(" ")[2] / 100000, // Converted to match coordinates
     energy: +baseData.split(" ")[3],
   }
-
   const nbActors = yield* readLine(); // "<nb actors>"
   // INIT - Création d'une liste vide pour y stocker nos objets Actors :
   let actorsList = []
@@ -66,13 +66,27 @@ export default function* playground() {
         speed: +actor.split(" ")[2],
         x: null,
         y: null,
-        alive: true
+        alive: true,
+        isInRange: false
       }
     )
   }
 
   // Création d'un compteur de tour :
   let turn = 0
+
+  // Création de la fonction qui permet de définir si le robot est dans la zone de tir:
+  const isInside = (actor_x: number, actor_y: number) => {
+    if ((actor_x - base.x) * (actor_x - base.x) +
+      (actor_y - base.y) * (actor_y - base.y) <= base.range * base.range) {
+      return true
+    }
+    else {
+      return false
+    }
+  }
+
+
 
   // *************** Fin de L'INITIALISATION *****************
 
@@ -83,7 +97,7 @@ export default function* playground() {
     turn++
 
     // On initialise la cible à null ou l'on supprime la cible précédente si il y a :
-    let nextTarget = null
+    let selectedTarget = null
 
     // A chaque tour, on récupère les mises à jour de chaque entités (statut
     // vivant ou mort, nouvelle position, ...)
@@ -94,14 +108,18 @@ export default function* playground() {
       // on récupère l'id de l'actor pour savoir qui on met à jour :
       const actorId = actor.split(" ")[0]
 
+      // TEST 5: On ajoute une nouvelle propriété qui définit si oui ou non la l'actor est à portée de tir :
+
+
       // on boucle sur notre liste (actorList) pour trouver l'actor et on le met à jour :
       actorsList.forEach((a, index) => {
         if (a.id === actorId) {
           actorsList[index] = {
-            ...a, 
+            ...a,
             alive: actor.split(" ")[1] === "alive" ? true : false,
             y: +actor.split(" ")[2],
-            x: +actor.split(" ")[3]
+            x: +actor.split(" ")[3],
+            isInRange: isInside(+actor.split(" ")[3], +actor.split(" ")[2])
           }
         }
       })
@@ -111,20 +129,18 @@ export default function* playground() {
     // - `yield* wait()` : On ne fait rien (on passe notre tour)
     // - `yield* shotTarget('nemo');` : On décide de tirer sur l'entité qui a l'id "nemo"
     // yield* wait();
-    console.log("::::::::::::::")
-    console.log(turn)
-    console.log("::::::::::::::")
-    console.log(actorsList)
 
 
     // Création de la logique pour définir la cible idéale lors de ce tour :
-    actorsList.forEach(a=>{
-      if (a.type === "robot" && a.alive === true)
-      return nextTarget = a.id
+    actorsList.forEach(target => {
+      if ( target.type === "robot"
+        && target.alive
+        && target.isInRange)
+        return selectedTarget = target.id
     })
 
     // Si une cible est sélectionnée, on l'éxecute, Sinon, on passe au prochain tour :
-    nextTarget ? yield* shotTarget(nextTarget): yield* wait()
+    selectedTarget ? yield* shotTarget(selectedTarget) : yield* wait()
 
   }
 }
