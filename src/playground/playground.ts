@@ -1,6 +1,5 @@
-// Bonjour ! Si vous ne connaissez pas la syntaxe "yield* xxx", imaginez que se
+// Bonjour ! Si vous ne connaissez pas la syntaxe "yield* xxx", imaginez que ce
 // sont des "await". Dans notre cas pratique cela fonctionne de la même manière.
-// test 4 working
 
 import {
   /**
@@ -71,6 +70,7 @@ export default function* playground() {
   let turn = 0
 
   // INIT - Création de la fonction qui permet de définir si l'actor est dans la zone de tir :
+  // based on: https://www.geeksforgeeks.org/find-if-a-point-lies-inside-or-on-circle/
   const isInRange = (actor_x: number, actor_y: number) => {
     if ((actor_x - base.x) * (actor_x - base.x) +
       (actor_y - base.y) * (actor_y - base.y) <= base.range * base.range) {
@@ -81,16 +81,15 @@ export default function* playground() {
     }
   }
 
-  // INIT - Création de la fonction qui calcule la distance entre l'actor et la base :
+  // INIT - Création de la fonction qui calcule la distance entre l'actor et la base - théorème de Pythagore :
   const distanceFromBase = (actor_x: number, actor_y: number) => {
     const a = actor_x - actor_y;
     const b = base.x - base.y;
-    const distance = Math.sqrt(a * a + b * b);
-    return distance
+    return Math.sqrt(a * a + b * b);
   }
 
-  // INIT - Création de la fonction qui, parmi une liste, retourne l'objet dont la propriété "distance" est la plus faible:
-  const getClosestTarget = (possibleTargets: Array<any>) => {
+  // INIT - Création de la fonction qui, parmi une liste, retourne l'objet dont la propriété "ETA" (Estimated Time of Approach) est la plus faible:
+  const getPriorityTarget = (possibleTargets: Array<any>) => {
 
     let minIndex: number = 0;
     let minValue: number;
@@ -98,35 +97,39 @@ export default function* playground() {
     possibleTargets.forEach((target, index) => {
       if (index === 0) {
         minIndex = index
-        minValue = target.distance
+        minValue = target.ETA
       } else if (target.distance < minValue) {
-        minValue = target.distance
+        minValue = target.ETA
         minIndex = index
       }
     }
     )
     return possibleTargets[minIndex]
   }
-  // Création de la fonction de dispatch pour gérer l'identification, la mise à jour et le transfert d'un actor dans la liste des cibles potentielles :
+  // INIT - Création de la fonction de dispatch pour gérer l'identification, la mise à jour et le transfert d'un actor dans la liste des cibles potentielles :
   const dispatch = (actor: string, possibleTargets: Array<any>) => {
-    // RUN - on récupère l'id de l'actor pour savoir qui on met à jour :
+    // on récupère l'id de l'actor pour savoir qui on met à jour :
     const currentId = actor.split(" ")[0]
-    // RUN - on stock les autres infos de manière lisible :
+    // on stock les autres infos de manière lisible :
     const isStillAlive = actor.split(" ")[1] === "alive" ? true : false
     const currentY = +actor.split(" ")[2]
     const currentX = +actor.split(" ")[3]
     const canBeShot = isInRange(currentX, currentY)
 
-    // RUN - on cherche l'acteur dans notre liste initiale :
+    // on cherche l'acteur dans notre liste initiale :
     const currentActor = actorsList.find(actor => actor.id === currentId)
-    // On vérifie si il remplit les conditions pour être une cible :
+    // on vérifie si il remplit les conditions pour être une cible :
     if (currentActor && currentActor.type === "robot" && isStillAlive && canBeShot) {
+      // on calcule sa distance et son ETA jusqu'à la base:
+      const computedDistance = distanceFromBase(currentX,currentY)
+      const computedETA = currentActor.speed / computedDistance
       // on envoie l'objet mis à jour au complet dans la liste des cibles potentielles
       possibleTargets.push({
         ...currentActor,
         y: currentY,
         x: currentX,
-        distance: distanceFromBase(currentX, currentY)
+        distance: computedDistance,
+        ETA: computedETA
       })
     }
   }
@@ -136,9 +139,8 @@ export default function* playground() {
   console.debug("DEBUT DE PARTIE")
   console.debug(`initialisation de ${actorsList.length} acteurs`)
   actorsList.forEach((actor, index) => {
-    console.debug(`n° ${index + 1}: ${actor.id} | ${actor.type === "robot" ? "robot" : "lapin"} | ${actor.speed} km/h`)
+    console.debug(`actor n°${index + 1} : ${actor.id} | ${actor.type === "robot" ? "robot" : "lapin"} | ${actor.speed} km/h`)
   })
-  // *************** Fin de L'INITIALISATION *****************
 
   // RUN - Code exécuté à chaque tour
   while (true) {
@@ -167,8 +169,8 @@ export default function* playground() {
     // - `yield* wait()` : On ne fait rien (on passe notre tour)
     // - `yield* shotTarget('nemo');` : On décide de tirer sur l'entité qui a l'id "nemo"
 
-    // RUN - On cherche la cible la plus proche de la base parmi les cibles potentielles et on la sélectionne :
-    selectedTarget = getClosestTarget(possibleTargets)
+    // RUN - On cherche la cible qui est capable de nous tuer le plus rapidement parmi les cibles potentielles et on la sélectionne :
+    selectedTarget = getPriorityTarget(possibleTargets)
 
     // DEBUG - infos:
     possibleTargets.length ?
@@ -176,10 +178,10 @@ export default function* playground() {
       console.debug(`tour [ ${turn} ] : Standby`)
 
     // Si une cible est sélectionnée, on l'éxecute, Sinon, on passe au prochain tour :
-    if (selectedTarget && turn > 1) {
-      console.debug(`tour [ ${turn} ] : ${selectedTarget.id.toUpperCase()} has been killed`)
+    if (selectedTarget && turn > 0) {
       yield* shotTarget(selectedTarget.id)
       base.energy--
+      console.debug(`tour [ ${turn} ] : ${selectedTarget.id.toUpperCase()} has been killed`)
     } else {
       yield* wait()
     }
